@@ -1,4 +1,4 @@
-import { Music } from "lucide-react";
+import { Music, ExternalLink } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,16 @@ const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
                 <Music className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span className="text-foreground font-medium">{hit.title}</span>
                 <span className="text-muted-foreground">— {hit.artist}</span>
+                <a
+                  href={hit.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mr-auto text-red-400 hover:text-red-300 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                  title="צפה ביוטיוב"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             ))}
           </div>

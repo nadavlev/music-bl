@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Music, Sparkles, Copy, RefreshCw } from "lucide-react";
+import { Music, Sparkles, Copy, RefreshCw, ExternalLink } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -146,6 +146,16 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
                     <Music className="w-4 h-4 text-primary shrink-0" />
                     <span className="font-medium">{hit.title}</span>
                     <span className="text-muted-foreground text-sm">— {hit.artist}</span>
+                    <a
+                      href={hit.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mr-auto flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors text-sm"
+                      title="צפה ביוטיוב"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span className="hidden sm:inline">YouTube</span>
+                    </a>
                   </div>
                 ))}
               </div>
