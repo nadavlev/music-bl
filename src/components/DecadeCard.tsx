@@ -1,4 +1,5 @@
-import { Music, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { Music } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,14 @@ interface DecadeCardProps {
   onSelect: (decade: Decade) => void;
 }
 
+function extractYoutubeId(url: string): string | null {
+  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
 const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
   const isEven = index % 2 === 0;
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   return (
     <div className="relative flex items-center gap-6 md:gap-10 group">
@@ -46,25 +53,44 @@ const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
             ))}
           </div>
 
-          {/* Preview hits */}
-          <div className="space-y-1.5 mb-4">
-            {decade.previewHits.map((hit) => (
-              <div key={hit.title} className="flex items-center gap-2 text-sm">
-                <Music className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="text-foreground font-medium">{hit.title}</span>
-                <span className="text-muted-foreground">— {hit.artist}</span>
-                <a
-                  href={hit.youtubeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-auto text-red-400 hover:text-red-300 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                  title="צפה ביוטיוב"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            ))}
+          {/* Preview hits with embedded player */}
+          <div className="space-y-2 mb-4">
+            {decade.previewHits.map((hit) => {
+              const videoId = extractYoutubeId(hit.youtubeUrl);
+              const isActive = activeVideoId === videoId;
+              return (
+                <div key={hit.title} className="space-y-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveVideoId(isActive ? null : videoId);
+                    }}
+                    className={`w-full flex items-center gap-2 text-sm p-1.5 rounded-lg transition-colors text-right ${
+                      isActive ? "bg-primary/10 border border-primary/30" : "hover:bg-accent/50"
+                    }`}
+                  >
+                    <Music className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="text-foreground font-medium">{hit.title}</span>
+                    <span className="text-muted-foreground">— {hit.artist}</span>
+                    <span className="mr-auto text-red-400 text-xs">
+                      {isActive ? "▶ מנגן" : "▶ נגן"}
+                    </span>
+                  </button>
+                  {isActive && videoId && (
+                    <div className="rounded-lg overflow-hidden border border-border">
+                      <iframe
+                        width="100%"
+                        height="200"
+                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                        className="block"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* CTA */}
