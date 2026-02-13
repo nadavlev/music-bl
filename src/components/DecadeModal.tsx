@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Music, Sparkles, Copy, RefreshCw, ExternalLink } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Music, Sparkles, Copy, RefreshCw } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,11 +71,17 @@ function getInstruments(genre: string): string {
   return instruments[genre] || "גיטרה, בס, תופים, סינתיסייזר";
 }
 
+function extractYoutubeId(url: string): string | null {
+  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
 const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
   const [showAI, setShowAI] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState("");
   const [keyword, setKeyword] = useState("");
   const [result, setResult] = useState<{ lyrics: string; structure: string } | null>(null);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const { toast } = useToast();
 
   if (!decade) return null;
@@ -100,6 +106,7 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
     setSelectedGenre("");
     setKeyword("");
     setResult(null);
+    setActiveVideoId(null);
   };
 
   const handleClose = (val: boolean) => {
@@ -141,23 +148,39 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
             <div>
               <h4 className="text-sm font-semibold text-muted-foreground mb-2">להיטים עיקריים</h4>
               <div className="space-y-2">
-                {decade.allHits.map((hit, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                    <Music className="w-4 h-4 text-primary shrink-0" />
-                    <span className="font-medium">{hit.title}</span>
-                    <span className="text-muted-foreground text-sm">— {hit.artist}</span>
-                    <a
-                      href={hit.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mr-auto flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors text-sm"
-                      title="צפה ביוטיוב"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      <span className="hidden sm:inline">YouTube</span>
-                    </a>
-                  </div>
-                ))}
+                {decade.allHits.map((hit, i) => {
+                  const videoId = extractYoutubeId(hit.youtubeUrl);
+                  const isActive = activeVideoId === videoId;
+                  return (
+                    <div key={i} className="space-y-2">
+                      <button
+                        onClick={() => setActiveVideoId(isActive ? null : videoId)}
+                        className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors text-right ${
+                          isActive ? "bg-primary/10 border border-primary/30" : "hover:bg-accent/50"
+                        }`}
+                      >
+                        <Music className="w-4 h-4 text-primary shrink-0" />
+                        <span className="font-medium">{hit.title}</span>
+                        <span className="text-muted-foreground text-sm">— {hit.artist}</span>
+                        <span className="mr-auto text-red-400 text-xs flex items-center gap-1">
+                          {isActive ? "▶ מנגן" : "▶ נגן"}
+                        </span>
+                      </button>
+                      {isActive && videoId && (
+                        <div className="rounded-lg overflow-hidden border border-border">
+                          <iframe
+                            width="100%"
+                            height="250"
+                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                            className="block"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
