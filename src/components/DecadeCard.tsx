@@ -30,8 +30,8 @@ const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
 
       {/* Card - alternating sides on desktop */}
       <div
-        className={`w-[calc(100%-4rem)] mr-auto md:w-[calc(50%-3.5rem)] ${
-          isEven ? "md:mr-auto md:pl-0 md:pr-8" : "md:ml-auto md:pr-0 md:pl-8"
+        className={`w-[calc(100%-4rem)] me-auto md:w-[calc(50%-3.5rem)] ${
+          isEven ? "md:me-auto md:ps-0 md:pe-8" : "md:ms-auto md:pe-0 md:ps-8"
         } md:pt-0`}
       >
         <div className="bg-card border border-border rounded-xl p-5 shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:border-primary/40">
