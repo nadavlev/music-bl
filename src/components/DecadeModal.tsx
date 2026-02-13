@@ -1,11 +1,12 @@
-import { useState, useMemo } from "react";
-import { Music, Sparkles, Copy, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { Music, Sparkles, Copy, RefreshCw, Loader2 } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DecadeModalProps {
   decade: Decade | null;
@@ -36,40 +37,6 @@ function getGenreColor(genre: string) {
   return genreColors[genre] || "bg-secondary text-secondary-foreground";
 }
 
-function generateSong(genre: string, keyword: string, decade: Decade): { lyrics: string; structure: string } {
-  const templates: Record<string, { verses: string[]; chorus: string; structure: string }> = {
-    default: {
-      verses: [
-        `בלילות שקטים, ${keyword} מרחף באוויר\nכמו מנגינה ישנה שלא נגמרה\nהלב פועם בקצב של ${genre}\nוהזמן עוצר, רק המוזיקה נשארה`,
-        `ברחובות העיר, ${keyword} לוחש בשקט\nצלילים מתערבבים כמו חלום\nמהעשור של ${decade.name}, הסיפור נולד\nוכל תו הוא רגע שלא יחזור`,
-      ],
-      chorus: `${keyword}, ${keyword}\nתן למוזיקה לדבר\nבסגנון ${genre} אנחנו שרים\nבואו נרקוד עד הבוקר`,
-      structure: `🎵 מבנה מומלץ:\n• קצב: בינוני-מהיר, אופייני ל${genre}\n• מפתח: רה מינור (Dm)\n• כלי נגינה: ${getInstruments(genre)}\n• מבנה: בית → פזמון → בית → פזמון → גשר → פזמון`,
-    },
-  };
-
-  const template = templates.default;
-  const lyrics = `🎤 בית 1:\n${template.verses[0]}\n\n🎶 פזמון:\n${template.chorus}\n\n🎤 בית 2:\n${template.verses[1]}\n\n🎶 פזמון:\n${template.chorus}`;
-
-  return { lyrics, structure: template.structure };
-}
-
-function getInstruments(genre: string): string {
-  const instruments: Record<string, string> = {
-    "רוקנ'רול": "גיטרה חשמלית, בס, תופים, פסנתר",
-    "רוק": "גיטרה חשמלית, בס, תופים",
-    "ג'אז": "סקסופון, פסנתר, קונטרבס, תופים",
-    "בלוז": "גיטרה אקוסטית, הרמוניקה, פסנתר",
-    "פופ": "סינתיסייזר, גיטרה, תופים אלקטרוניים",
-    "דיסקו": "בס, גיטרה פאנקית, כלי מיתר, תופים",
-    "היפ-הופ": "ביטים, סמפלר, סינתיסייזר, 808",
-    "EDM": "סינתיסייזר, דראם מאשין, בס אלקטרוני",
-    "רגטיים": "פסנתר, בנג'ו",
-    "סווינג": "תזמורת גדולה, חצוצרות, סקסופון",
-    "פאנק": "גיטרה חשמלית, בס, תופים מהירים",
-  };
-  return instruments[genre] || "גיטרה, בס, תופים, סינתיסייזר";
-}
 
 function extractYoutubeId(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
@@ -81,17 +48,31 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [keyword, setKeyword] = useState("");
   const [result, setResult] = useState<{ lyrics: string; structure: string } | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const { toast } = useToast();
 
   if (!decade) return null;
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!selectedGenre || !keyword.trim()) {
       toast({ title: "נא למלא את כל השדות", variant: "destructive" });
       return;
     }
-    setResult(generateSong(selectedGenre, keyword, decade));
+    setIsGenerating(true);
+    setResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-song", {
+        body: { genre: selectedGenre, keyword, decadeName: decade.name },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setResult({ lyrics: data.lyrics, structure: data.structure });
+    } catch (err: any) {
+      toast({ title: err.message || "שגיאה ביצירת השיר", variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleCopy = () => {
@@ -228,9 +209,9 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
             </div>
 
             {/* Generate */}
-            <Button className="w-full gap-2" size="lg" onClick={handleGenerate}>
-              <Sparkles className="w-5 h-5" />
-              צור שיר
+            <Button className="w-full gap-2" size="lg" onClick={handleGenerate} disabled={isGenerating}>
+              {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              {isGenerating ? "יוצר שיר..." : "צור שיר"}
             </Button>
 
             {/* Result */}
