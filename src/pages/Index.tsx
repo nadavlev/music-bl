@@ -15,7 +15,7 @@ const Index = () => {
       <section id="timeline" className="relative max-w-5xl mx-auto px-4 pb-24">
         {/* Vertical line */}
         <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border hidden md:block" />
-        <div className="absolute right-6 top-0 bottom-0 w-0.5 bg-border md:hidden" />
+        <div className="absolute right-[2.15rem] top-0 bottom-0 w-0.5 bg-border md:hidden" />
 
         <div className="space-y-8 md:space-y-16">
           {decades.map((decade, index) => (
