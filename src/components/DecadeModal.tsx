@@ -139,13 +139,13 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[calc(100%-2rem)] sm:w-full p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl flex items-center gap-3">
-            <span className="text-3xl">{decade.icon}</span>
+          <DialogTitle className="text-xl sm:text-2xl flex items-center gap-2 sm:gap-3">
+            <span className="text-2xl sm:text-3xl">{decade.icon}</span>
             {decade.name}
           </DialogTitle>
-          <DialogDescription className="text-base leading-relaxed">
+          <DialogDescription className="text-sm sm:text-base leading-relaxed">
             {decade.historicalNote}
           </DialogDescription>
         </DialogHeader>
@@ -178,14 +178,16 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
                     <div key={i} className="space-y-2">
                       <button
                         onClick={() => setActiveVideoId(isActive ? null : videoId)}
-                        className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors text-right ${
+                        className={`w-full flex items-start sm:items-center gap-2 sm:gap-3 p-2 rounded-lg transition-colors text-right ${
                           isActive ? "bg-primary/10 border border-primary/30" : "hover:bg-accent/50"
                         }`}
                       >
-                        <Music className="w-4 h-4 text-primary shrink-0" />
-                        <span className="font-medium">{hit.title}</span>
-                        <span className="text-muted-foreground text-sm">— {hit.artist}</span>
-                        <span className="mr-auto text-red-400 text-xs flex items-center gap-1">
+                        <Music className="w-4 h-4 text-primary shrink-0 mt-0.5 sm:mt-0" />
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0 flex-1">
+                          <span className="font-medium text-sm sm:text-base truncate">{hit.title}</span>
+                          <span className="text-muted-foreground text-xs sm:text-sm truncate">— {hit.artist}</span>
+                        </div>
+                        <span className="text-destructive text-xs shrink-0">
                           {isActive ? "▶ מנגן" : "▶ נגן"}
                         </span>
                       </button>
@@ -193,7 +195,7 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
                         <div className="rounded-lg overflow-hidden border border-border">
                           <iframe
                             width="100%"
-                            height="250"
+                            height="200"
                             src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
                             allow="autoplay; encrypted-media"
                             allowFullScreen

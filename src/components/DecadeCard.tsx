@@ -65,14 +65,16 @@ const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
                       e.stopPropagation();
                       setActiveVideoId(isActive ? null : videoId);
                     }}
-                    className={`w-full flex items-center gap-2 text-sm p-1.5 rounded-lg transition-colors text-right ${
+                    className={`w-full flex items-start sm:items-center gap-2 text-sm p-2 rounded-lg transition-colors text-right ${
                       isActive ? "bg-primary/10 border border-primary/30" : "hover:bg-accent/50"
                     }`}
                   >
-                    <Music className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span className="text-foreground font-medium">{hit.title}</span>
-                    <span className="text-muted-foreground">— {hit.artist}</span>
-                    <span className="mr-auto text-red-400 text-xs">
+                    <Music className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 sm:mt-0" />
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 min-w-0 flex-1">
+                      <span className="text-foreground font-medium truncate">{hit.title}</span>
+                      <span className="text-muted-foreground text-xs sm:text-sm truncate">— {hit.artist}</span>
+                    </div>
+                    <span className="text-destructive text-xs shrink-0">
                       {isActive ? "▶ מנגן" : "▶ נגן"}
                     </span>
                   </button>
@@ -80,7 +82,7 @@ const DecadeCard = ({ decade, index, onSelect }: DecadeCardProps) => {
                     <div className="rounded-lg overflow-hidden border border-border">
                       <iframe
                         width="100%"
-                        height="200"
+                        height="180"
                         src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
                         allow="autoplay; encrypted-media"
                         allowFullScreen
