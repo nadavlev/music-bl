@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Music, Sparkles, Copy, RefreshCw, Loader2 } from "lucide-react";
+import { Music, Sparkles, Copy, RefreshCw, Loader2, Volume2 } from "lucide-react";
 import { Decade } from "@/data/decades";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
   const [keyword, setKeyword] = useState("");
   const [result, setResult] = useState<{ lyrics: string; structure: string } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingMusic, setIsGeneratingMusic] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -87,7 +89,47 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
     setSelectedGenre("");
     setKeyword("");
     setResult(null);
+    setIsGeneratingMusic(false);
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+    }
     setActiveVideoId(null);
+  };
+
+  const handleGenerateMusic = async () => {
+    if (!result || !selectedGenre || !decade) return;
+    setIsGeneratingMusic(true);
+    try {
+      const musicPrompt = `${selectedGenre} style instrumental music from the ${decade.years} era. Theme: ${keyword}. Upbeat and catchy melody.`;
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-music`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ prompt: musicPrompt, duration: 30 }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "שגיאה ביצירת המוזיקה");
+      }
+
+      const data = await response.json();
+      const url = `data:audio/mpeg;base64,${data.audioContent}`;
+      setAudioUrl(url);
+      toast({ title: "🎵 המנגינה נוצרה בהצלחה!" });
+    } catch (err: any) {
+      toast({ title: err.message || "שגיאה ביצירת המוזיקה", variant: "destructive" });
+    } finally {
+      setIsGeneratingMusic(false);
+    }
   };
 
   const handleClose = (val: boolean) => {
@@ -225,16 +267,41 @@ const DecadeModal = ({ decade, open, onOpenChange }: DecadeModalProps) => {
                     {result.structure}
                   </pre>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5">
                     <Copy className="w-4 h-4" />
                     העתק
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setResult(null)} className="gap-1.5">
+                  <Button variant="outline" size="sm" onClick={() => { setResult(null); setAudioUrl(null); }} className="gap-1.5">
                     <RefreshCw className="w-4 h-4" />
                     צור שיר חדש
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateMusic}
+                    disabled={isGeneratingMusic}
+                    className="gap-1.5"
+                  >
+                    {isGeneratingMusic ? <Loader2 className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
+                    {isGeneratingMusic ? "יוצר מנגינה..." : "🎵 צור מנגינה"}
+                  </Button>
                 </div>
+
+                {/* Audio Player */}
+                {audioUrl && (
+                  <div className="border-t border-border pt-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground mb-2">🎶 המנגינה שנוצרה:</h4>
+                    <audio controls className="w-full" src={audioUrl} />
+                  </div>
+                )}
+
+                {isGeneratingMusic && (
+                  <div className="border-t border-border pt-3 text-center text-sm text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+                    יוצר מנגינה מקורית... זה עשוי לקחת עד 30 שניות
+                  </div>
+                )}
               </div>
             )}
 
