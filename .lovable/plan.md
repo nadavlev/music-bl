@@ -1,67 +1,31 @@
 
+# Fix Timeline Card Alternating Alignment (RTL)
 
-# 🎵 ציר זמן מוזיקלי אינטראקטיבי
+## Problem
+The timeline cards are not properly alternating between right and left sides on desktop. This is because the page uses `dir="rtl"`, which reverses the behavior of `margin-left: auto` and `margin-right: auto`. The current CSS classes don't account for this RTL reversal.
 
-## סקירה כללית
-אתר בעברית (RTL) המציג ציר זמן אנכי אינטראקטיבי של ההיסטוריה המוזיקלית מ-1900 ועד היום, מחולק ל-13 עשורים. כל עשור מציג את הסגנונות הדומיננטיים, להיטים עיקריים, ואפשרות ליצור שיר חדש באמצעות AI.
+## Solution
+Update the card positioning classes in `DecadeCard.tsx` to use RTL-aware Tailwind utilities (`md:me-auto` / `md:ms-auto` and `md:pe-*` / `md:ps-*`) instead of physical direction classes (`md:mr-auto` / `md:ml-auto` and `md:pr-*` / `md:pl-*`). These logical properties automatically adapt to the text direction.
 
----
+## Changes
 
-## שלב 1: דף הבית וציר הזמן
+### `src/components/DecadeCard.tsx`
+- Replace `md:mr-auto` with `md:me-auto` (margin-inline-end)
+- Replace `md:ml-auto` with `md:ms-auto` (margin-inline-start)  
+- Replace `md:pr-8` / `md:pl-0` with `md:pe-8` / `md:ps-0`
+- Replace `md:pl-8` / `md:pr-0` with `md:ps-8` / `md:pe-0`
 
-### ציר זמן אנכי
-- ציר זמן אנכי עם גלילה חלקה, מ-1900 עד 2020
-- כל עשור מיוצג כ"תחנה" בציר עם כותרת (למשל: "שנות ה-70"), אייקון מוזיקלי, ותיאור קצר של הסגנון הדומיננטי
-- עיצוב מושך עם אנימציות כניסה בגלילה (fade-in / slide-in)
-- כיוון RTL מלא לכל הממשק
+This ensures:
+- Even-indexed cards appear on the **right** side (in RTL)
+- Odd-indexed cards appear on the **left** side (in RTL)
+- Proper alternating layout regardless of text direction
 
-### כרטיס עשור
-- כל תחנה בציר מציגה:
-  - שם העשור ותמונה/אייקון מייצג
-  - הסגנון המוזיקלי הדומיננטי (רוק, ג'אז, פופ וכו')
-  - 2-3 שירים מרכזיים כתצוגה מקדימה
-  - כפתור "גלה עוד" לפתיחת חלון מפורט
-
----
-
-## שלב 2: חלון מידע מפורט (מודאל)
-
-בלחיצה על עשור נפתח חלון מודאל מעוצב הכולל:
-- **כותרת העשור** ותיאור היסטורי קצר
-- **רשימת להיטים** — 5-8 שירים מרכזיים עם שם השיר והאמן
-- **סגנונות מוזיקליים** — תגיות צבעוניות של הסגנונות הדומיננטיים
-- **כפתור "צור שיר חדש ב-AI"** — מוביל ליצירת שיר
-
----
-
-## שלב 3: יצירת שיר ב-AI
-
-לאחר לחיצה על כפתור יצירת השיר:
-1. **בחירת סגנון** — המשתמש בוחר מרשימת סגנונות רלוונטיים לעשור (רוק, בלוז, פופ, ג'אז וכו')
-2. **מילת מפתח** — שדה טקסט חופשי לכתיבת נושא או רעיון לשיר
-3. **יצירה** — לחיצה על כפתור שולחת את הבקשה ל-AI
-
-### תוצאת ה-AI:
-- **טקסט שיר** מלא בהתאם לסגנון שנבחר (בתים, פזמון)
-- **המלצת מבנה מוזיקלי** — קצב מומלץ, מפתח, כלי נגינה אופייניים
-- אפשרות להעתיק את התוצאה או ליצור שיר חדש
-
----
-
-## שלב 4: נתונים ותוכן
-
-מאגר JSON סטטי עם נתוני 13 עשורים הכולל:
-- שם העשור ותיאור
-- סגנונות מוזיקליים דומיננטיים
-- רשימת להיטים עיקריים (שם שיר + אמן)
-- prompt מותאם ל-AI עבור כל סגנון
-
----
-
-## שלב 5: עיצוב וחוויית משתמש
-
-- עיצוב מודרני ונקי בגוונים כהים (dark theme) עם הדגשות צבע
-- אנימציות גלילה חלקות לתחנות בציר
-- רספונסיבי למובייל ודסקטופ
-- תמיכה מלאה ב-RTL
-
+### Technical Detail
+Line 33-35 changes from:
+```
+isEven ? "md:mr-auto md:pl-0 md:pr-8" : "md:ml-auto md:pr-0 md:pl-8"
+```
+to:
+```
+isEven ? "md:me-auto md:ps-0 md:pe-8" : "md:ms-auto md:pe-0 md:ps-8"
+```
